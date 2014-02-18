@@ -1,5 +1,8 @@
 package com.luxsoft.sw4.cfdi
 
+import mx.gob.sat.cfd.x3.ComprobanteDocument
+import mx.gob.sat.cfd.x3.ComprobanteDocument.Comprobante
+
 class Cfdi {
     
     Emisor emisor
@@ -15,7 +18,10 @@ class Cfdi {
     BigDecimal impuestosRetenidos
     BigDecimal total
     String origen
+    byte[] xml
+    byte[] pdf
     
+    ComprobanteDocument comprobanteDocument
     
     Date dateCreated
     Date lastUpdated
@@ -30,6 +36,29 @@ class Cfdi {
         uuid(nullable:true,maxSize:255)
         fechaTimbrado(nullable:true)
         origen(maxSize:255)
-        
+        xml maxSize:(1024 * 512)  // 50kb para almacenar el xml
+        pdf nullable:true,maxSize:(1024 * 512)  // 50kb para almacenar el xml
+    }
+    
+    static transients = ['comprobanteDocument','comprobante','timbreFiscal']
+    
+    public ComprobanteDocument getComprobanteDocument(){
+        if(this.comprobanteDocument==null){
+            loadComprobante()
+        }
+        return this.comprobanteDocument
+    }
+    
+    public Comprobante getComprobante(){
+        return getComprobanteDocument().getComprobante()
+    }
+    
+    void loadComprobante(){
+        ByteArrayInputStream is=new ByteArrayInputStream(getXml())
+        this.comprobanteDocument=ComprobanteDocument.Factory.parse(is)
+    }
+    
+    TimbreFiscal getTimbreFiscal(){
+        return new TimbreFiscal(getComprobante())
     }
 }
