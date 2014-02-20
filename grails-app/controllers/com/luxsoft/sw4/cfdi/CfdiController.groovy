@@ -7,7 +7,7 @@ class CfdiController {
     def importadorService
     
     def index(){
-        println 'Generando lista de comprobantes fiscales'
+        //println 'Generando lista de comprobantes fiscales'
     }
     
     def list(){
@@ -16,7 +16,8 @@ class CfdiController {
     }
     
     def enviarCorreo(){
-        cfdiMailService.enviarComprobantes()
+        Date fecha=Date.parse('dd/MM/yyyy','19/12/2013')
+        cfdiMailService.enviarComprobantes(fecha)
         redirect action:'index'
     }
     
@@ -25,6 +26,16 @@ class CfdiController {
         
         importadorService.importar(f1,f1)
         redirect action:'index'
+    }
+    
+    def pdf(){
+        def data=cfdiMailService.testPdf()
+        def name='test.pdf'
+        response.setContentType("application/pdf")
+        //response.setHeader("Content-disposition", "filename=${name}")
+        //response.setHeader "Content-disposition", "attachment; filename=\"${name}\"";
+        response.setHeader("Content-disposition", "attachment;filename=${name}")
+        response.outputStream << data
     }
     
     

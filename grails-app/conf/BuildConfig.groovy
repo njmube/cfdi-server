@@ -42,8 +42,9 @@ grails.project.dependency.resolution = {
         mavenCentral()
         // uncomment these (or add new ones) to enable remote dependency resolution from public Maven repositories
         //mavenRepo "http://repository.codehaus.org"
-        //mavenRepo "http://download.java.net/maven/2/"
+        mavenRepo "http://download.java.net/maven/2/"
         //mavenRepo "http://repository.jboss.com/maven2/"
+        
     }
 
     dependencies {
@@ -52,11 +53,11 @@ grails.project.dependency.resolution = {
         // runtime 'org.postgresql:postgresql:9.3-1100-jdbc41'
         //CFDI
         compile 'org.apache.xmlbeans:xmlbeans:2.4.0'
-	compile 'com.luxsoft:cfdi:2.3'
-	compile 'axis:axis:1.4'
-	compile 'com.edicom.ediwinws:cfdiClient:1.0'
-	compile 'org.apache.commons:commons-compress:1.1'
-	compile 'net.glxn:qrgen:1.2'
+	    compile 'com.luxsoft:cfdi:2.3'
+	    compile 'axis:axis:1.4'
+	    compile 'com.edicom.ediwinws:cfdiClient:1.0'
+	    compile 'org.apache.commons:commons-compress:1.1'
+	    compile 'net.glxn:qrgen:1.2'
         compile 'org.bouncycastle:bcprov-jdk14:1.45'
     }
 
@@ -81,7 +82,7 @@ grails.project.dependency.resolution = {
         compile ":build-test-data:2.0.9"
         compile ":platform-core:1.0.RC6"
         runtime ':twitter-bootstrap:3.1.0'
-        
         compile ":jasper:1.7.0"
+        compile ":mail:1.0.1"
     }
 }

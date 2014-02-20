@@ -4,21 +4,17 @@
  * and open the template in the editor.
  */
 
+package com.luxsoft.sw4.cfdi
+
 /**
  *
  * @author rcancino
  */
-navigation={
-    app{
-        home(titleText:'Inicio')
-        catalogos()
-        cfdi(titleText:'Comprobantes'){
-            importar()
-            enviarCorreo()
-            pdf(titleText:'PDF')
-        }  
-    }
-    admin{
+class PdfUtils {
+    
+    def generarPdf(cfdi){
         
     }
+	
 }
+

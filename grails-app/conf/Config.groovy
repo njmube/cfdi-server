@@ -112,4 +112,21 @@ log4j = {
            'org.springframework',
            'org.hibernate',
            'net.sf.ehcache.hibernate'
+    //Habilitamos loggin desde service clases
+    info 'grails.app.services.com.luxsoft.sw4.cfdi'
 }
+
+grails {
+   mail {
+     host = "smtp.papelsa.com.mx"
+     //port = 25
+     username = "soporte_sist@papelsa.com.mx"
+     password = "syspap06"
+     //props = ["mail.smtp.auth":"true",
+       //       "mail.smtp.socketFactory.port":"465",
+         //     "mail.smtp.socketFactory.class":"javax.net.ssl.SSLSocketFactory",
+           //   "mail.smtp.socketFactory.fallback":"false"]  
+   }
+}
+grails.mail.default.from="soporte_sist@papelsa.com.mx"
+
