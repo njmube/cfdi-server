@@ -28,32 +28,27 @@ class PdfGenerator implements ResourceLoaderAware{
     private ResourceLoader resourceLoader
     
     def jasperService
+	
+	/**
+	 * SELECT d.CLAVE,d.DESCRIPCION,p.KILOS as KXM,p.GRAMOS,d.CANTIDAD,d.PRECIO,d.IMPORTE,d.CORTES_INSTRUCCION
+		,p.modoDeVenta as MDV
+		,d.UNIDAD_ID as unidad ,d.ORDENP
+		,d.precio*1.16 as PRECIO_IVA,d.IMPORTE*1.16 as IMPORTE_IVA
+		FROM sx_ventasdet d join sx_productos p on(p.PRODUCTO_ID=d.PRODUCTO_ID) where venta_id=?
+		"""
+	 * @param comprobante
+	 * @param complemento
+	 * @param conceptos
+	 * @return
+	 */
     
-    byte[] generar(comprobante,complemento){
-        def conceptos=comprobante.getConceptos().getConceptoArray()
-        def modelData=conceptos.collect { cc ->
-            def res=[
-		'cantidad':cc.getCantidad(),\
-                'NoIdentificacion':cc.getNoIdentificacion(),\
-                'descripcion':cc.getDescripcion(),\
-                'unidad':cc.getUnidad(),\
-                'ValorUnitario':cc.getValorUnitario(),\
-                'Importe':cc.getImporte()
-            ]
-            if(cc.informacionAduaneraArray){
-                res.PEDIMENTO_FECHA=cc.informacionAduaneraArray[0]?.fecha.getTime()
-                res.PEDIMENTO=cc.informacionAduaneraArray[0]?.numero
-                res.ADUANA=cc.informacionAduaneraArray[0]?.aduana
-            }
-            if(cc.cuentaPredial){
-                res.CUENTA_PREDIAL=cc.cuentaPredial.numero
-            }
-            return res
-        }
+    byte[] generar(comprobante,complemento,conceptos){
+        
+        
         JasperReportDef reportDef=new JasperReportDef(
             name:'FacturaCFDI.jrxml',
             fileFormat:JasperExportFormat.PDF_FORMAT,
-            reportData:modelData,
+            reportData:conceptos,
             parameters:resolverParametros(comprobante,complemento)
         )
         ByteArrayOutputStream out=jasperService.generateReport(reportDef)
@@ -106,23 +101,31 @@ class PdfGenerator implements ResourceLoaderAware{
 		map.MONEDA=complemento.MONEDA
 		map.CARGO_ID=complemento.CARGO_ID
 		
+		map.IMPORTE_BRUTO=comprobante.subTotal
+		map.DESCUENTO=complemento.DESCUENTO
+		map.DESCUENTOS=comprobante.descuento
+		map.IMPORTE=comprobante.subTotal-comprobante.descuento
+		map.IMPUESTO=comprobante.getImpuestos().getTotalImpuestosTrasladados()
+		map.TOTAL=comprobante.total
+		
+		
 		//Emisor emisor=comprobante.emisor
-		map.EMISIOR=comprobante.emisor.nombre
+		map.EMISOR=comprobante.emisor.nombre
 		map["EMISOR_RFC"]=comprobante.emisor.rfc
 		map.DIRECCION_EMISOR=getDireccionEnFormatoEstandar(comprobante.emisor.getDomicilioFiscal())
 		//map.REGIMEN=comprobante.emisor.getRegimenFiscalArray().class
-		map.REGIMEN='A DONDE ?'
+		map.REGIMEN=comprobante.getEmisor().getRegimenFiscalArray()[0].regimen
 		
 		map.FECHA=comprobante.fecha.getTime()
-		map.CONDICIONES_DE_PAGO=comprobante.getMetodoDePago()
-		map.METODO_PAGO=comprobante.getFormaDePago()
+		map.CONDICIONES_DE_PAGO=comprobante.getFormaDePago()
+		map.METODO_PAGO=comprobante.getMetodoDePago()
 		
 		map.NFISCAL=comprobante.serie+"-"+comprobante.folio
-		map.TIPO_CFDI=comprobante.getTipoDeComprobante()
+		map.TIPO_CFDI=comprobante.getTipoDeComprobante().toString()
 		map.NUM_CERTIFICADO=comprobante.getNoCertificado()
 		map.SELLO_DIGITAL=comprobante.getSello()
 		//map.LEYENDA DE CFDI=comprobante.LEYENDA DE CFDI
-		//map.EXPEDIDO_DIRECCION=comprobante.EXPEDIDO_DIRECCION
+		map.EXPEDIDO_DIRECCION=getDireccionEnFormatoEstandar(comprobante.getEmisor().getExpedidoEn())
 		map.CUENTA=comprobante.getNumCtaPago()
 		
 		
@@ -135,10 +138,18 @@ class PdfGenerator implements ResourceLoaderAware{
 		map.IMP_CON_LETRA=ImporteALetra.aLetra(comprobante.total)
 		map.PINT_IVA=MonedaUtils.IVA*100
 		
+		if(comprobante.receptor.rfc=='XAXX010101000'){
+			map.IMPORTE_BRUTO=comprobante.subTotal*(1+MonedaUtils.IVA)			
+			map.DESCUENTOS=comprobante.descuento
+			map.IMPORTE=comprobante.total//(comprobante.subTotal*(1+MonedaUtils.IVA))-(comprobante.descuento)
+			map.TOTAL=comprobante.total
+		}
 		
         //QRCode
         map["QR_CODE"]= QRCodeUtils.generarQR(comprobante)
+		
         TimbreFiscal timbre=new TimbreFiscal(comprobante)
+		
         map["FECHA_TIMBRADO"]= timbre.FechaTimbrado
         map["FOLIO_FISCAL"]= timbre.UUID
         map["SELLO_DIGITAL_SAT"]= timbre.selloSAT

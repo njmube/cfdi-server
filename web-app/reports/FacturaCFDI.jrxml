@@ -62,7 +62,7 @@
 	<parameter name="DESCUENTOS" isForPrompting="true" class="java.math.BigDecimal"/>
 	<parameter name="KILOS" isForPrompting="true" class="java.lang.Double"/>
 	<parameter name="PINT_IVA" isForPrompting="true" class="java.math.BigDecimal"/>
-	<parameter name="DESCUENTO" isForPrompting="true" class="java.math.BigDecimal"/>
+	<parameter name="DESCUENTO" isForPrompting="true" class="java.lang.Double"/>
 	<parameter name="IMPORTE" isForPrompting="true" class="java.math.BigDecimal"/>
 	<parameter name="EXPEDIDO_DIRECCION" isForPrompting="false" class="java.lang.String"/>
 	<parameter name="CUENTA" isForPrompting="true" class="java.lang.String"/>
@@ -78,6 +78,11 @@
 	<parameter name="NUM_CERTIFICADO" isForPrompting="false" class="java.lang.String"/>
 	<parameter name="LOGO_EMPRESA" isForPrompting="true" class="java.lang.Object"/>
 	<parameter name="FAC_USD" isForPrompting="true" class="java.lang.Object"/>
+	<parameter name="CONDICIONES_DE_PAGO" isForPrompting="true" class="java.lang.String"/>
+	<parameter name="REGIMEN" isForPrompting="true" class="java.lang.String"/>
+	<parameter name="DIRECCION_EMISOR" isForPrompting="true" class="java.lang.String"/>
+	<parameter name="EMISOR" isForPrompting="true" class="java.lang.String"/>
+	<parameter name="EMISOR_RFC" isForPrompting="true" class="java.lang.String"/>
 
 	<field name="CLAVE" class="java.lang.String"/>
 	<field name="DESCRIPCION" class="java.lang.String"/>
@@ -574,7 +579,7 @@ $V{MOD_VTA}.doubleValue()<=0.00
 					<textElement textAlignment="Right">
 						<font fontName="SansSerif" pdfFontName="Helvetica-Bold" size="8" isBold="true" isItalic="false" isUnderline="false"/>
 					</textElement>
-				<textFieldExpression   class="java.math.BigDecimal"><![CDATA[$P{DESCUENTO}]]></textFieldExpression>
+				<textFieldExpression   class="java.lang.Double"><![CDATA[$P{DESCUENTO}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="false" isBlankWhenNull="true" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
@@ -982,17 +987,17 @@ $V{MOD_VTA}.doubleValue()<=0.00 ? "% DESCTO" :  "$ DESCTO"]]></textFieldExpressi
 					</textElement>
 				<text><![CDATA[TIPO DE DOCUMENTO       : ]]></text>
 				</staticText>
-				<staticText>
+				<textField isStretchWithOverflow="false" pattern="" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
-						mode="Transparent"
-						x="257"
+						x="255"
 						y="169"
-						width="49"
+						width="51"
 						height="10"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
-						key="staticText-176"/>
-					<box>					<topPen lineWidth="0.0"/>
+						key="textField-133"/>
+					<box>					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
 					<leftPen lineWidth="0.0"/>
 					<bottomPen lineWidth="0.0"/>
 					<rightPen lineWidth="0.0"/>
@@ -1000,8 +1005,8 @@ $V{MOD_VTA}.doubleValue()<=0.00 ? "% DESCTO" :  "$ DESCTO"]]></textFieldExpressi
 					<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" lineSpacing="Single">
 						<font fontName="Arial" pdfFontName="Helvetica" size="8" isBold="false" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
 					</textElement>
-				<text><![CDATA[INGRESO]]></text>
-				</staticText>
+				<textFieldExpression   class="java.lang.String"><![CDATA[$P{TIPO_CFDI}]]></textFieldExpression>
+				</textField>
 			</band>
 			</groupFooter>
 		</group>
@@ -1666,24 +1671,6 @@ $P{NFISCAL}.startsWith( "CA" ) ? "CALLE 4" :
 $P{NFISCAL}.startsWith( "TA" ) ? "TACUBA" :
 $P{NFISCAL}.startsWith( "CF" ) ? "5 DE FEBRERO" : "ND"]]></textFieldExpression>
 				</textField>
-				<staticText>
-					<reportElement
-						mode="Transparent"
-						x="408"
-						y="46"
-						width="164"
-						height="13"
-						key="staticText-172"/>
-					<box>					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
-</box>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font pdfFontName="Helvetica-Bold" size="8" isBold="true"/>
-					</textElement>
-				<text><![CDATA[PAGO EN UNA SOLA EXHIBICION]]></text>
-				</staticText>
 				<textField isStretchWithOverflow="false" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
 					<reportElement
 						x="408"
@@ -1754,13 +1741,30 @@ $P{NFISCAL}.startsWith( "CF" ) ? "5 DE FEBRERO" : "ND"]]></textFieldExpression>
 					</textElement>
 				<textFieldExpression   class="java.util.Date"><![CDATA[$P{FECHA}]]></textFieldExpression>
 				</textField>
+				<textField isStretchWithOverflow="false" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
+					<reportElement
+						x="408"
+						y="46"
+						width="164"
+						height="13"
+						key="textField-132"/>
+					<box>					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="SansSerif" pdfFontName="Helvetica-Bold" size="8" isBold="true" isItalic="false" isUnderline="false"/>
+					</textElement>
+				<textFieldExpression   class="java.lang.String"><![CDATA[$P{CONDICIONES_DE_PAGO}]]></textFieldExpression>
+				</textField>
 				<staticText>
 					<reportElement
 						mode="Opaque"
 						x="12"
-						y="45"
+						y="58"
 						width="64"
-						height="24"
+						height="13"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
 						key="staticText-182"/>
@@ -1772,35 +1776,32 @@ $P{NFISCAL}.startsWith( "CF" ) ? "5 DE FEBRERO" : "ND"]]></textFieldExpression>
 					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
 						<font fontName="Arial" pdfFontName="Helvetica-Bold" size="5" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
 					</textElement>
-				<text><![CDATA[PAPEL, S.A. DE C.V.
-R.F.C. PAP-830101-CR3
-REG.CAM. COM. 3538
+				<text><![CDATA[REG.CAM. COM. 3538
 CED. EMP. 68166]]></text>
 				</staticText>
 				<staticText>
 					<reportElement
 						mode="Opaque"
-						x="12"
-						y="69"
-						width="142"
-						height="7"
+						x="304"
+						y="86"
+						width="103"
+						height="27"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
 						key="staticText-183"/>
-					<box>					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.0" lineColor="#000000"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#FFFFFF"/>
-</box>
+					<box></box>
 					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
-						<font fontName="Arial" pdfFontName="Helvetica-Bold" size="5" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+						<font fontName="Arial" pdfFontName="Helvetica" size="5" isBold="false" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
 					</textElement>
-				<text><![CDATA[REGIMEN GENERAL DE LEY PERSONAS MORALES]]></text>
+				<text><![CDATA[BIOLOGO MAXIMINO MARTINEZ No. 3902
+COL. SAN SALVADOR XOCHIMANCA
+DELEG. AZCAPOTZALCO MEXICO, D.F.
+C.P. 02870  TEL/FAX: 5342-7166]]></text>
 				</staticText>
 				<staticText>
 					<reportElement
 						mode="Opaque"
-						x="13"
+						x="304"
 						y="78"
 						width="103"
 						height="8"
@@ -1816,13 +1817,150 @@ CED. EMP. 68166]]></text>
 				<staticText>
 					<reportElement
 						mode="Opaque"
-						x="13"
+						x="118"
+						y="78"
+						width="85"
+						height="8"
+						forecolor="#000000"
+						backcolor="#FFFFFF"
+						key="staticText-185">
+							<printWhenExpression><![CDATA[new Boolean(!$P{NFISCAL}.startsWith( "CA" ))]]></printWhenExpression>
+						</reportElement>
+					<box></box>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+						<font fontName="Arial" pdfFontName="Helvetica-Bold" size="5" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<text><![CDATA[SUCURSAL:    CALLE 4]]></text>
+				</staticText>
+				<staticText>
+					<reportElement
+						mode="Opaque"
+						x="118"
+						y="86"
+						width="85"
+						height="27"
+						forecolor="#000000"
+						backcolor="#FFFFFF"
+						key="staticText-186">
+							<printWhenExpression><![CDATA[new Boolean(!$P{NFISCAL}.startsWith( "CA" ))]]></printWhenExpression>
+						</reportElement>
+					<box></box>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+						<font fontName="Arial" pdfFontName="Helvetica" size="5" isBold="false" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<text><![CDATA[CALLE 4 No. 194-A
+COL. GRANJAS SAN ANTONIO
+DELEG. IZTAPALAPA MEXICO, D.F.
+C.P. 09070  TEL/FAX: 5685-3176]]></text>
+				</staticText>
+				<staticText>
+					<reportElement
+						mode="Opaque"
+						x="207"
+						y="78"
+						width="93"
+						height="8"
+						forecolor="#000000"
+						backcolor="#FFFFFF"
+						key="staticText-187">
+							<printWhenExpression><![CDATA[new Boolean(!$P{NFISCAL}.startsWith( "BO" ))]]></printWhenExpression>
+						</reportElement>
+					<box></box>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+						<font fontName="Arial" pdfFontName="Helvetica-Bold" size="5" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<text><![CDATA[SUCURSAL:    BOLIVAR]]></text>
+				</staticText>
+				<staticText>
+					<reportElement
+						mode="Opaque"
+						x="207"
+						y="86"
+						width="93"
+						height="27"
+						forecolor="#000000"
+						backcolor="#FFFFFF"
+						key="staticText-188">
+							<printWhenExpression><![CDATA[new Boolean(!$P{NFISCAL}.startsWith( "BO" ))]]></printWhenExpression>
+						</reportElement>
+					<box></box>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+						<font fontName="Arial" pdfFontName="Helvetica" size="5" isBold="false" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<text><![CDATA[BOLIVAR No. 95-D
+COL. CENTRO
+DELEG. CUAUHTEMOC MEXICO, D.F.
+C.P. 06080  TEL/FAX: 5709-2022]]></text>
+				</staticText>
+				<staticText>
+					<reportElement
+						mode="Opaque"
+						x="178"
+						y="41"
+						width="93"
+						height="8"
+						forecolor="#000000"
+						backcolor="#FFFFFF"
+						key="staticText-189">
+							<printWhenExpression><![CDATA[new Boolean(!$P{NFISCAL}.startsWith( "AN" ))]]></printWhenExpression>
+						</reportElement>
+					<box></box>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+						<font fontName="Arial" pdfFontName="Helvetica-Bold" size="5" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<text><![CDATA[SUCURSAL:    ANDRADE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement
+						mode="Opaque"
+						x="178"
+						y="49"
+						width="93"
+						height="27"
+						forecolor="#000000"
+						backcolor="#FFFFFF"
+						key="staticText-190">
+							<printWhenExpression><![CDATA[new Boolean(!$P{NFISCAL}.startsWith( "AN" ))]]></printWhenExpression>
+						</reportElement>
+					<box></box>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+						<font fontName="Arial" pdfFontName="Helvetica" size="5" isBold="false" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<text><![CDATA[DR. ANDRADE No. 78 Y 80
+COL. DOCTORES
+DELEG. CUAUHTEMOC MEXICO, D.F.
+C.P. 06720  TEL/FAX: 5578-7400]]></text>
+				</staticText>
+				<staticText>
+					<reportElement
+						mode="Opaque"
+						x="12"
+						y="78"
+						width="103"
+						height="8"
+						forecolor="#000000"
+						backcolor="#FFFFFF"
+						key="staticText-191">
+							<printWhenExpression><![CDATA[new Boolean(!$P{NFISCAL}.startsWith( "TA" ))]]></printWhenExpression>
+						</reportElement>
+					<box></box>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+						<font fontName="Arial" pdfFontName="Helvetica-Bold" size="5" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<text><![CDATA[SUCURSAL:    TACUBA]]></text>
+				</staticText>
+				<staticText>
+					<reportElement
+						mode="Opaque"
+						x="12"
 						y="86"
 						width="103"
 						height="27"
 						forecolor="#000000"
 						backcolor="#FFFFFF"
-						key="staticText-185"/>
+						key="staticText-192">
+							<printWhenExpression><![CDATA[new Boolean(!$P{NFISCAL}.startsWith( "TA" ))]]></printWhenExpression>
+						</reportElement>
 					<box></box>
 					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
 						<font fontName="Arial" pdfFontName="Helvetica" size="5" isBold="false" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
@@ -1830,8 +1968,92 @@ CED. EMP. 68166]]></text>
 				<text><![CDATA[BIOLOGO MAXIMINO MARTINEZ No. 3902
 COL. SAN SALVADOR XOCHIMANCA
 DELEG. AZCAPOTZALCO MEXICO, D.F.
-C.P. 02870  TEL/FAX: 5342-7166]]></text>
+C.P. 02870  TEL/FAX: 2465-0399]]></text>
 				</staticText>
+				<staticText>
+					<reportElement
+						mode="Opaque"
+						x="277"
+						y="41"
+						width="93"
+						height="8"
+						forecolor="#000000"
+						backcolor="#FFFFFF"
+						key="staticText-193">
+							<printWhenExpression><![CDATA[new Boolean(!$P{NFISCAL}.startsWith( "CF" ))]]></printWhenExpression>
+						</reportElement>
+					<box></box>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+						<font fontName="Arial" pdfFontName="Helvetica-Bold" size="5" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<text><![CDATA[SUCURSAL:    5 DE FEBRERO]]></text>
+				</staticText>
+				<staticText>
+					<reportElement
+						mode="Opaque"
+						x="277"
+						y="49"
+						width="93"
+						height="27"
+						forecolor="#000000"
+						backcolor="#FFFFFF"
+						key="staticText-194">
+							<printWhenExpression><![CDATA[new Boolean(!$P{NFISCAL}.startsWith( "CF" ))]]></printWhenExpression>
+						</reportElement>
+					<box></box>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+						<font fontName="Arial" pdfFontName="Helvetica" size="5" isBold="false" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<text><![CDATA[5 DE FEBRERO No. 378
+COL. OBRERA
+DELEG. CUAUHTEMOC MEXICO, D.F.
+C.P. 06800  TEL/FAX: 5740-7777]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="false" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
+					<reportElement
+						x="12"
+						y="71"
+						width="142"
+						height="7"
+						forecolor="#000000"
+						backcolor="#FFFFFF"
+						key="textField-134"/>
+					<box></box>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+						<font fontName="Arial" pdfFontName="Helvetica-Bold" size="5" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<textFieldExpression   class="java.lang.String"><![CDATA[$P{REGIMEN}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="false" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
+					<reportElement
+						x="12"
+						y="44"
+						width="142"
+						height="7"
+						forecolor="#000000"
+						backcolor="#FFFFFF"
+						key="textField-135"/>
+					<box></box>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+						<font fontName="Arial" pdfFontName="Helvetica-Bold" size="5" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<textFieldExpression   class="java.lang.String"><![CDATA[$P{EMISOR}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="false" isBlankWhenNull="false" evaluationTime="Now" hyperlinkType="None"  hyperlinkTarget="Self" >
+					<reportElement
+						x="13"
+						y="51"
+						width="142"
+						height="7"
+						forecolor="#000000"
+						backcolor="#FFFFFF"
+						key="textField-136"/>
+					<box></box>
+					<textElement textAlignment="Left" verticalAlignment="Top" rotation="None" lineSpacing="Single">
+						<font fontName="Arial" pdfFontName="Helvetica-Bold" size="5" isBold="true" isItalic="false" isUnderline="false" isPdfEmbedded ="false" pdfEncoding ="Cp1252" isStrikeThrough="false" />
+					</textElement>
+				<textFieldExpression   class="java.lang.String"><![CDATA[$P{EMISOR_RFC}]]></textFieldExpression>
+				</textField>
 			</band>
 		</columnHeader>
 		<detail>

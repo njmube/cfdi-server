@@ -49,13 +49,31 @@ class CfdiMailService {
     }
     
     def enviarComprobantes(Date fecha,String rfc){
-        def xmlFiles=[:]
+        //def xmlFiles=[]
+		def attachments=[]
         def cfdSelect="""select * from sx_cfdi c where date(c.creado)=? and c.rfc=? 
             """
         Sql sql=new Sql(dataSource_importacion)
         sql.eachRow(cfdSelect,[fecha,rfc]){ cfdi->
-            //println 'Agregndo archivo: '+cfdi.XML_FILE
-            xmlFiles[cfdi.XML_FILE]=cfdi.xml
+			
+			def data=[:]
+			
+			data.XML_NAME=cfdi.XML_FILE
+			data.XML=cfdi.xml
+			
+			// Generamos el pdf
+			ByteArrayInputStream is=new ByteArrayInputStream(cfdi.xml)
+			ComprobanteDocument docto=ComprobanteDocument.Factory.parse(is)
+			Comprobante comprobante=docto.comprobante
+			def complemento=obtenerParametrosComplementarios(cfdi.ORIGEN_ID)
+			def conceptos=obtenerConceptos(cfdi.ORIGEN_ID)
+			byte[] pdf=pdfGenerator.generar(comprobante,complemento,conceptos)
+			def pdfName=cfdi.XML_FILE.replaceAll(".xml",".pdf")
+			
+			data.PDF_NAME=pdfName
+			data.PDF=pdf
+			
+			attachments.add(data)
             
         }
         
@@ -79,32 +97,24 @@ class CfdiMailService {
             return
         }
         println "Enviando correos a: $rfc  a $row.email "
-        // Generando PDFs
-        def pdfFiles=[:]
-        xmlFiles.each{k,v ->
-             
-             ByteArrayInputStream is=new ByteArrayInputStream(v)
-             ComprobanteDocument docto=ComprobanteDocument.Factory.parse(is)
-             Comprobante comprobante=docto.comprobante
-             byte[] pdf=pdfGenerator.generar(comprobante,obtenerParametrosComplementarios(null))
-             pdfFiles[k.replaceAll('.xml','.pdf')]=pdf
-        }
-        /*
+        
         sendMail{
             multipart true
             to 'rubencancino6@gmail.com'
-            cc 'lquintanillab@gmail.com'
+            cc 'cpradoglez@gmail.com'
             subject 'Comprobantes fiscales digitales '
             html view:'/cfdi/mailAutomaticoPorReceptor',model:[cliente:row.cliente]
-            xmlFiles.each{ k,v ->
-                attach k,"application/xml",v
+            attachments.each{ data->
+				// Agregamos el xml
+                attach data.XML_NAME,"application/xml",data.XML
+				// El PDF
+				attach data.PDF_NAME,"application/pdf",data.PDF
+				
             }
-            pdfFiles.each{k,v ->
-                attach k,"application/pdf",v
-            }
+            
         }
         println "Enviando enviados a: $rfc  a $row.email "
-        */
+        
        
     }
 	
@@ -121,10 +131,12 @@ class CfdiMailService {
 			,V.DIA_DE_REV AS D_REV,V.DIA_DEL_PAGO AS D_PAG,V.COBRADOR_ID AS COB,V.VENDEDOR_ID AS VEND,V.PLAZO,(CASE WHEN V.REVISION IS TRUE THEN 'R' ELSE 'F' END) AS FREV
            ,V.PEDIDO_FENTREGA AS ENVIO,(CASE WHEN V.ORIGEN='CRE' THEN 'CREDITO' ELSE 'CONTADO' END) AS TIPO,V.COMENTARIO,V.INSTRUCCION_ENTREGA AS DIR_ENTREGA,V.PUESTO
            ,(SELECT S.NOMBRE FROM sx_socios S WHERE S.SOCIO_ID=V.SOCIO_ID) AS SOCIO
-           ,V.PEDIDO_FOLIO AS PEDIDO,V.MODIFICADO_USERID AS ELAB_VTA,V.KILOS,V.SURTIDOR,V.CREADO_USERID AS ELAB_FAC,V.PEDIDO_IP_CREATED AS IP
+           ,V.PEDIDO_FOLIO AS PEDIDO,V.MODIFICADO_USERID AS ELAB_VTA,V.SURTIDOR,V.CREADO_USERID AS ELAB_FAC,V.PEDIDO_IP_CREATED AS IP
            ,(SELECT S.CLAVE FROM sw_sucursales S WHERE S.SUCURSAL_ID=V.SUCURSAL_ID) AS SUC
            ,V.CE AS PCE,V.FPAGO
           ,V.MONEDA
+		  ,(SELECT MAX(D.DSCTO) FROM SX_VENTASDET D JOIN SX_PRODUCTOS P ON(P.PRODUCTO_ID=D.PRODUCTO_ID) WHERE D.VENTA_ID=V.CARGO_ID AND P.MODODEVENTA='B') AS DESCUENTO
+		  ,(SELECT SUM(-D.CANTIDAD/D.FACTORU*P.KILOS) FROM SX_VENTASDET D JOIN SX_PRODUCTOS P ON(P.PRODUCTO_ID=D.PRODUCTO_ID) WHERE D.VENTA_ID=V.CARGO_ID) AS KILOS
           FROM SX_VENTAS V 
           WHERE V.CARGO_ID=?
 		"""
@@ -132,9 +144,22 @@ class CfdiMailService {
 		def row=sql.firstRow(select,[cargoId])
 		return row
 	}
+	
+	def obtenerConceptos(String cargoId){
+		String select="""
+		SELECT d.CLAVE,d.DESCRIPCION,p.KILOS as KXM,p.GRAMOS,d.CANTIDAD,d.PRECIO,d.IMPORTE,d.CORTES_INSTRUCCION
+		,p.modoDeVenta as MDV
+		,d.UNIDAD_ID as unidad ,d.ORDENP
+		,d.precio*1.16 as PRECIO_IVA,d.IMPORTE*1.16 as IMPORTE_IVA
+		FROM sx_ventasdet d join sx_productos p on(p.PRODUCTO_ID=d.PRODUCTO_ID) where venta_id=?
+		"""
+		Sql sql=new Sql(dataSource_importacion)
+		def rows=sql.rows(select,[cargoId])
+		return rows
+	}
     
     def testPdf(){
-        def id='00000000-43120afd-0143-12919ac1-002d'
+        def id='8a8a87e5-4348e71b-0143-49abde02-0140'
         Sql sql=new Sql(dataSource_importacion)
         def row=sql.firstRow("select * from SX_CFDI where CFD_ID=?",[id])
         ByteArrayInputStream is=new ByteArrayInputStream(row.xml)
@@ -142,8 +167,9 @@ class CfdiMailService {
         Comprobante comprobante=docto.comprobante
 		//println 'Buscando parametros complementarios para CARGO_ID: '+row.ORIGEN_ID
 		def complemento=obtenerParametrosComplementarios(row.ORIGEN_ID)
+		def conceptos=obtenerConceptos(row.ORIGEN_ID)
 		//println 'Complemento: '+complemento
-        byte[] pdf=pdfGenerator.generar(comprobante,complemento)
+        byte[] pdf=pdfGenerator.generar(comprobante,complemento,conceptos)
         return pdf
         
     }
