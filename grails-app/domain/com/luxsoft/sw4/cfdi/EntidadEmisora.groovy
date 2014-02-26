@@ -2,23 +2,24 @@ package com.luxsoft.sw4.cfdi
 
 class EntidadEmisora {
 
-    Emisor emisor
     String clave
     String grupo
-    String descripcion
     String url
+    String usuario
+    String password
+    String driverClassName='com.mysql.jdbc.Driver'
+    boolean activo
     
     Date dateCreated
     Date lastUpdated
 
     static constraints = {
         clave(size:5..15,unique:true)
-        grupo(size:5..15)
-        descripcion size:1..255
-        url url:true
+        grupo(nullable:true,size:3..15)
+        url()
     }
     
     String toString(){
-        return "$clave ($emisor.nombre) URL:$url"
+        return "$clave ($grupo) URL:$url"
     }
 }

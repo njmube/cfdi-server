@@ -15,6 +15,10 @@ class CfdiController {
         
     }
     
+    def correos(){
+        
+    }
+    
     def enviarCorreo(){
         Date fecha=Date.parse('dd/MM/yyyy','19/12/2013')
         cfdiMailService.enviarComprobantes(fecha)
@@ -24,7 +28,7 @@ class CfdiController {
     def importar(){
         Date f1=Date.parse('dd/MM/yyyy','19/12/2013')
         
-        importadorService.importar(f1,f1)
+        importadorService.importar(f1)
         redirect action:'index'
     }
     

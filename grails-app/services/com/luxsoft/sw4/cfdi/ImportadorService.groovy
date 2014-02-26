@@ -2,7 +2,7 @@ package com.luxsoft.sw4.cfdi
 
 import grails.transaction.Transactional
 import groovy.sql.Sql
-
+import org.springframework.jdbc.datasource.SingleConnectionDataSource
 
 class ImportadorService {
     
@@ -22,5 +22,22 @@ class ImportadorService {
                 )
                 println 'Procesando CFDI: '+cfdi.timbreFiscal
             }
+    }
+    
+    def importar(Date fecha){
+        log.info 'Importando Cfdis'
+        def emisores=EntidadEmisora.findAllByActivo(true)
+        emisores.each{ importador->
+            println 'Importando Cfdis desde '+importador.clave
+            SingleConnectionDataSource ds=new SingleConnectionDataSource(
+                driverClassName:importador.driverClassName,
+                url:importador.url,
+                username:importador.usuario,
+                password:importador.password)
+            Sql sql=new Sql(ds)
+            sql.eachRow("select * from sx_cfdi",[fecha]){ row->
+                println 'Importando cfdi: '+row
+            }
+        }
     }
 }

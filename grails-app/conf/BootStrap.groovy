@@ -29,6 +29,15 @@ class BootStrap {
                     rfc:'FDE9310013X7',
                     email:'facturas@fdimpresos.com'
                 ).save(failOnError:true)
+                
+                EntidadEmisora.findOrCreateWhere(
+                    clave:'TACUBA',
+                    grupo:'PAPEL',
+                    url:"jdbc:mysql://localhost/tacuba",
+                    driverClassName:'com.mysql.jdbc.Driver',
+                    usuario:'root',
+                    password:'sys',
+                    activo:true).save(failOnError:true)
             }
         }
         

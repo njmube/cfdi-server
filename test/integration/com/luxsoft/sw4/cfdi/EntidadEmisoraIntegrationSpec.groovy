@@ -34,17 +34,17 @@ class EntidadEmisoraIntegrationSpec extends Specification {
         when:'Actualizamos una propiedad'
         def found=EntidadEmisora.get(entidad.id)
         assert found
-        found.descripcion='Sucursal Andrade'
+        found.clave='ANDRADE'
         found.save(failOnError:true)
         
         then:'Los cambios se reglejan en la base de datos'
-        EntidadEmisora.get(found.id).descripcion=='Sucursal Andrade'
+        EntidadEmisora.get(found.id).clave=='ANDRADE'
         println found 
     }
     
     void "Eliminar una entidad emisora"(){
         given:'Una entidad existente'
-        def entidad=EntidadEmisora.build(grupo:'ANDRADE').save(failOnError:true)
+        def entidad=EntidadEmisora.build(grupo:'PAPEL').save(failOnError:true)
         
         when:'Eliminamos la entidad'
         def found=EntidadEmisora.get(entidad.id)

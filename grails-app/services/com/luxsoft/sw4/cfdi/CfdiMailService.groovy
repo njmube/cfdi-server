@@ -1,5 +1,6 @@
 package com.luxsoft.sw4.cfdi
 
+import com.luxsoft.sw4.cfdi.mail.CfdiMailLog
 import grails.transaction.Transactional
 import groovy.sql.Sql
 import mx.gob.sat.cfd.x3.ComprobanteDocument
@@ -39,42 +40,49 @@ class CfdiMailService {
             String rfc=row.rfc
             try{
                 enviarComprobantes(fecha,rfc)
+                
             }catch (Exception ex){
                 ex.printStackTrace()
                 log.error ex
             }
         }
-        
-         
     }
     
     def enviarComprobantes(Date fecha,String rfc){
         //def xmlFiles=[]
-		def attachments=[]
-        def cfdSelect="""select * from sx_cfdi c where date(c.creado)=? and c.rfc=? 
-            """
+        def cfdiLog=new CfdiMailLog(rfc:rfc,emisor:'PENDIENTE')
+        def attachments=[]
+        def cfdSelect="""
+                select c.* from sx_cfdi c left join sx_cxc_cargos_cancelados x on(x.CARGO_ID=c.ORIGEN_ID)
+                where date(c.creado)=?
+                and c.RFC=?
+                and c.tipo=? 
+                and  x.CARGO_ID is null
+                and c.uuid is not null
+                """
         Sql sql=new Sql(dataSource_importacion)
-        sql.eachRow(cfdSelect,[fecha,rfc]){ cfdi->
+        sql.eachRow(cfdSelect,[fecha,rfc,'FACTURA']){ cfdi->
 			
-			def data=[:]
+            def data=[:]
 			
-			data.XML_NAME=cfdi.XML_FILE
-			data.XML=cfdi.xml
+            data.XML_NAME=cfdi.XML_FILE
+            data.XML=cfdi.xml
 			
-			// Generamos el pdf
-			ByteArrayInputStream is=new ByteArrayInputStream(cfdi.xml)
-			ComprobanteDocument docto=ComprobanteDocument.Factory.parse(is)
-			Comprobante comprobante=docto.comprobante
-			def complemento=obtenerParametrosComplementarios(cfdi.ORIGEN_ID)
-			def conceptos=obtenerConceptos(cfdi.ORIGEN_ID)
-			byte[] pdf=pdfGenerator.generar(comprobante,complemento,conceptos)
-			def pdfName=cfdi.XML_FILE.replaceAll(".xml",".pdf")
+            // Generamos el pdf
+            ByteArrayInputStream is=new ByteArrayInputStream(cfdi.xml)
+            ComprobanteDocument docto=ComprobanteDocument.Factory.parse(is)
+            Comprobante comprobante=docto.comprobante
+            def complemento=obtenerParametrosComplementarios(cfdi.ORIGEN_ID)
+            def conceptos=obtenerConceptos(cfdi.ORIGEN_ID)
+            byte[] pdf=pdfGenerator.generar(comprobante,complemento,conceptos)
+            def pdfName=cfdi.XML_FILE.replaceAll(".xml",".pdf")
 			
-			data.PDF_NAME=pdfName
-			data.PDF=pdf
+            data.PDF_NAME=pdfName
+            data.PDF=pdf
 			
-			attachments.add(data)
+            attachments.add(data)
             
+            cfdiLog.emisor=comprobante.emisor.nombre
         }
         
         //Detectando correo electronico destino
@@ -85,15 +93,21 @@ class CfdiMailService {
             ,[rfc])
         // Si  no localizo email en SX_CLIENTES_CFDI
         if(!row){
-            println 'Buscando email en tabla de clientes'
+            //println 'Buscando email en tabla de clientes'
             row=sql.firstRow("select c.email1 as email from SX_CLIENTES  c where c.rfc=?",[rfc])
             if(!row){
-                println "No se puede enviar correo de cfdis a $rfc por no localizar cuenta apropiada de correo"
+                def msg= "No se puede enviar correo de cfdis a $rfc por no localizar cuenta apropiada de correo"
+                println msg
+                cfdiLog.error=msg
+                cfdiLog.save(failOnError:true)
                 return
             }
         }
         if(!EmailValidator.getInstance().isValid(row.email)){
-            println "Correo invalido $row.email para RFC:$rfc"
+            def msg ="Correo invalido $row.email para RFC:$rfc"
+            cfdiLog.error=msg
+            cfdiLog.email=row.email
+            cfdiLog.save(failOnError:true)
             return
         }
         println "Enviando correos a: $rfc  a $row.email "
@@ -105,21 +119,23 @@ class CfdiMailService {
             subject 'Comprobantes fiscales digitales '
             html view:'/cfdi/mailAutomaticoPorReceptor',model:[cliente:row.cliente]
             attachments.each{ data->
-				// Agregamos el xml
+                // Agregamos el xml
                 attach data.XML_NAME,"application/xml",data.XML
-				// El PDF
-				attach data.PDF_NAME,"application/pdf",data.PDF
+                // El PDF
+                attach data.PDF_NAME,"application/pdf",data.PDF
 				
             }
             
         }
         println "Enviando enviados a: $rfc  a $row.email "
-        
+        cfdiLog.msg="Correo enviado"
+        cfdiLog.email=row.email
+        cfdiLog.save(failOnError:true)
        
     }
 	
-	def obtenerParametrosComplementarios(String cargoId){
-		String select="""
+    def obtenerParametrosComplementarios(String cargoId){
+        String select="""
 			SELECT V.CARGO_ID,V.CLAVE AS CLAVCTE,V.NOMBRE
 			,CONCAT(IFNULL((SELECT CONCAT('1) ',T.TELEFONO)  FROM sx_clientes_tels T WHERE T.CLIENTE_ID=V.CLIENTE_ID AND T.TIPO='TEL1'),' ')
 			,IFNULL((SELECT CONCAT('2) ',T.TELEFONO)  FROM sx_clientes_tels T WHERE T.CLIENTE_ID=V.CLIENTE_ID AND T.TIPO='TEL2'),' ')
@@ -140,23 +156,23 @@ class CfdiMailService {
           FROM SX_VENTAS V 
           WHERE V.CARGO_ID=?
 		"""
-		Sql sql=new Sql(dataSource_importacion)
-		def row=sql.firstRow(select,[cargoId])
-		return row
-	}
+        Sql sql=new Sql(dataSource_importacion)
+        def row=sql.firstRow(select,[cargoId])
+        return row
+    }
 	
-	def obtenerConceptos(String cargoId){
-		String select="""
+    def obtenerConceptos(String cargoId){
+        String select="""
 		SELECT d.CLAVE,d.DESCRIPCION,p.KILOS as KXM,p.GRAMOS,d.CANTIDAD,d.PRECIO,d.IMPORTE,d.CORTES_INSTRUCCION
 		,p.modoDeVenta as MDV
 		,d.UNIDAD_ID as unidad ,d.ORDENP
 		,d.precio*1.16 as PRECIO_IVA,d.IMPORTE*1.16 as IMPORTE_IVA
 		FROM sx_ventasdet d join sx_productos p on(p.PRODUCTO_ID=d.PRODUCTO_ID) where venta_id=?
 		"""
-		Sql sql=new Sql(dataSource_importacion)
-		def rows=sql.rows(select,[cargoId])
-		return rows
-	}
+        Sql sql=new Sql(dataSource_importacion)
+        def rows=sql.rows(select,[cargoId])
+        return rows
+    }
     
     def testPdf(){
         def id='8a8a87e5-4348e71b-0143-49abde02-0140'
@@ -165,46 +181,15 @@ class CfdiMailService {
         ByteArrayInputStream is=new ByteArrayInputStream(row.xml)
         ComprobanteDocument docto=ComprobanteDocument.Factory.parse(is)
         Comprobante comprobante=docto.comprobante
-		//println 'Buscando parametros complementarios para CARGO_ID: '+row.ORIGEN_ID
-		def complemento=obtenerParametrosComplementarios(row.ORIGEN_ID)
-		def conceptos=obtenerConceptos(row.ORIGEN_ID)
-		//println 'Complemento: '+complemento
+        //println 'Buscando parametros complementarios para CARGO_ID: '+row.ORIGEN_ID
+        def complemento=obtenerParametrosComplementarios(row.ORIGEN_ID)
+        def conceptos=obtenerConceptos(row.ORIGEN_ID)
+        //println 'Complemento: '+complemento
         byte[] pdf=pdfGenerator.generar(comprobante,complemento,conceptos)
         return pdf
         
     }
-    /*
-    def generarPdf(cfdi){
-        def conceptos=comprobante.getConceptos().getConceptoArray()
-        def modelData=conceptos.collect { cc ->
-            def res=[
-		'cantidad':cc.getCantidad(),\
-                'NoIdentificacion':cc.getNoIdentificacion(),\
-                'descripcion':cc.getDescripcion(),\
-                'unidad':cc.getUnidad(),\
-                'ValorUnitario':cc.getValorUnitario(),\
-                'Importe':cc.getImporte()
-            ]
-            if(cc.informacionAduaneraArray){
-                res.PEDIMENTO_FECHA=cc.informacionAduaneraArray[0]?.fecha.getTime()
-                res.PEDIMENTO=cc.informacionAduaneraArray[0]?.numero
-                res.ADUANA=cc.informacionAduaneraArray[0]?.aduana
-            }
-            if(cc.cuentaPredial){
-                res.CUENTA_PREDIAL=cc.cuentaPredial.numero
-            }
-            return res
-        }
-               
-        JasperReportDef reportDef=new JasperReportDef(
-            name:'CFDI.jrxml',
-            fileFormat:JasperExportFormat.PDF_FORMAT,
-            reportData:modelData,
-            parameters:cfdiParameters.resolverParametros(cfdi)
-        )
-        ByteArrayOutputStream out=jasperService.generateReport(reportDef)
-        return out
-    }*/
+    
 }
 
 

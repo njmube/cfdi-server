@@ -4,17 +4,18 @@ import com.luxsoft.sw4.cfdi.Cfdi
 
 class CfdiMailLog {
     
-    Cfdi cfdi
+    String emisor
+    String rfc
     String email
     String message
-    String estatus
+    String error
     
     Date dateCreated
     Date lastUpdated
 
     static constraints = {
         email nullable:true
-        message nullable:true
-        estatus nullable:true
+        message nullable:true,maxSize:600
+        error nullable:true,maxSize:600
     }
 }

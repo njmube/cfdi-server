@@ -11,10 +11,11 @@
 navigation={
     app{
         home(titleText:'Inicio')
-        catalogos()
+        catalogos(controller:'home')
         cfdi(titleText:'Comprobantes'){
             importar()
             enviarCorreo()
+            correos()
             pdf(titleText:'PDF')
         }  
     }
