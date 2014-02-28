@@ -97,9 +97,9 @@ environments {
 log4j = {
     // Example of changing the log pattern for the default console appender:
     //
-    //appenders {
-    //    console name:'stdout', layout:pattern(conversionPattern: '%c{2} %m%n')
-    //}
+    appenders {
+        console name:'stdout', layout:pattern(conversionPattern: '[%-5p] %c{2} %m%n ')
+    }
 
     error  'org.codehaus.groovy.grails.web.servlet',        // controllers
            'org.codehaus.groovy.grails.web.pages',          // GSP
@@ -114,19 +114,25 @@ log4j = {
            'net.sf.ehcache.hibernate'
     //Habilitamos loggin desde service clases
     info 'grails.app.services.com.luxsoft.sw4.cfdi'
+	
+	info 'grails.app.controllers.com.luxsoft.sw4'
 }
 
 grails {
    mail {
      host = "smtp.papelsa.com.mx"
      //port = 25
-     username = "soporte_sist@papelsa.com.mx"
-     password = "syspap06"
+     username = "facturacion@papelsa.com.mx"
+     password = "enviocfdi"
      //props = ["mail.smtp.auth":"true",
        //       "mail.smtp.socketFactory.port":"465",
          //     "mail.smtp.socketFactory.class":"javax.net.ssl.SSLSocketFactory",
            //   "mail.smtp.socketFactory.fallback":"false"]  
    }
 }
-grails.mail.default.from="soporte_sist@papelsa.com.mx"
+grails.mail.default.from="facturacion@papelsa.com.mx"
+
+grails.databinding.dateFormats = ['MMddyyyy', 'yyyy-MM-dd HH:mm:ss.S', "yyyy-MM-dd'T'hh:mm:ss'Z’","dd/MM/yyyy"]
+grails.plugins.twitterbootstrap.fixtaglib = true
+
 

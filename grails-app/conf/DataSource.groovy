@@ -20,10 +20,10 @@ dataSource_importacion{
     dbCreate = ''
     readOnly=true
     properties {
-        maxActive = 2
-        maxIdle = 1
-        minIdle = 1
-        initialSize = 1
+        maxActive = 5
+        maxIdle = 3
+        minIdle = 2
+        initialSize = 3
         minEvictableIdleTimeMillis = 60000
         timeBetweenEvictionRunsMillis = 60000
         maxWait = 10000
@@ -40,7 +40,7 @@ environments {
             username = 'root'
             password = 'sys'
             url = 'jdbc:mysql://localhost/cfdi_server'
-            dbCreate = 'create-drop'
+            dbCreate = 'update'
             properties {
             maxActive = 2
             maxIdle = 1
@@ -54,7 +54,7 @@ environments {
 }
         dataSource_importacion{
             dbCreate = ""
-            url = 'jdbc:mysql://localhost/produccion'
+            url = 'jdbc:mysql://10.10.1.228/produccion'
         }
         
     }

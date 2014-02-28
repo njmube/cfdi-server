@@ -61,15 +61,15 @@ class PdfGenerator implements ResourceLoaderAware{
        
 		 Resource rs=resourceLoader.getResource("images/empresaFacLogo.jpg")
         Image logo=ImageIO.read(rs.getInputStream())
-        println 'Logo cargado: '+logo
+        //println 'Logo cargado: '+logo
         map['LOGO_EMPRESA']=logo
 		
 		
 		Image img2=ImageIO.read(resourceLoader.getResource("images/facUSD.jpg").getInputStream())
-		println 'Image 2:'+img2
+		//println 'Image 2:'+img2
 		map['FAC_USD']=img2
 		
-		println 'Procesando complemento: '+complemento
+		//println 'Procesando complemento: '+complemento
 		map['CLAVCTE']=complemento.CLAVCTE
 		map['NOMBRE']=complemento.NOMBRE
         map.TEL=complemento.TEL

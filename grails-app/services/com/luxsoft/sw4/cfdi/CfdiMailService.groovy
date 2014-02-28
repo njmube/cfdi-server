@@ -7,11 +7,13 @@ import mx.gob.sat.cfd.x3.ComprobanteDocument
 import mx.gob.sat.cfd.x3.ComprobanteDocument.Comprobante
 import org.codehaus.groovy.grails.plugins.jasper.JasperExportFormat
 import org.codehaus.groovy.grails.plugins.jasper.JasperReportDef
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.EmailValidator
 
 
 class CfdiMailService {
     
+	static transactional = false
    
     def dataSource_importacion
     
@@ -30,7 +32,7 @@ class CfdiMailService {
                 and  x.CARGO_ID is null
                 and c.uuid is not null
                 group by c.rfc 
-                having count(*)>1 
+                having count(*)>=1 
                 order by count(*) desc
                 
                 """
@@ -50,7 +52,46 @@ class CfdiMailService {
     
     def enviarComprobantes(Date fecha,String rfc){
         //def xmlFiles=[]
-        def cfdiLog=new CfdiMailLog(rfc:rfc,emisor:'PENDIENTE')
+		def cfdiLog=CfdiMailLog.findOrCreateByRfcAndFecha(rfc,fecha)
+		cfdiLog.emisor='PENDIENTE'
+		if(cfdiLog.id && !cfdiLog.error){
+			//println "Envio satisfactorio  del $fecha para $rfc"
+			return
+		}
+		Sql sql=new Sql(dataSource_importacion)
+		
+		//Detectando correo electronico destino
+		def row=sql.firstRow("""select x.email1 as email,c.nombre as cliente
+                    from SX_CLIENTES_CFDI_MAILS x join sx_clientes c on(x.cliente_id=c.cliente_id) 
+                    where c.rfc=?
+                    """
+			,[rfc])
+		// Si  no localizo email en SX_CLIENTES_CFDI
+		if(!row){
+			//println 'Buscando email en tabla de clientes'
+			row=sql.firstRow("select c.email1 as email from SX_CLIENTES  c where c.rfc=?",[rfc])
+			if(!row){
+				def msg= "No se puede enviar correo de cfdis a $rfc por no localizar cuenta apropiada de correo"
+				println msg
+				cfdiLog.error=msg
+				cfdiLog.save(failOnError:true)
+				return
+			}
+		}
+		if(!EmailValidator.getInstance().isValid(row.email)){
+			def msg ="Correo invalido $row.email para RFC:$rfc"
+			cfdiLog.error=msg
+			cfdiLog.email=row.email
+			//cfdiLog.message="CFDI NO ENVIADO"
+			cfdiLog.save(failOnError:true)
+			return
+		}
+		
+		println "Re enviando correo de comprobantes del $fecha para $rfc en email: $row.email"
+		
+		
+		
+        //def cfdiLog=new CfdiMailLog(rfc:rfc,emisor:'PENDIENTE',fecha:fecha)
         def attachments=[]
         def cfdSelect="""
                 select c.* from sx_cfdi c left join sx_cxc_cargos_cancelados x on(x.CARGO_ID=c.ORIGEN_ID)
@@ -60,7 +101,7 @@ class CfdiMailService {
                 and  x.CARGO_ID is null
                 and c.uuid is not null
                 """
-        Sql sql=new Sql(dataSource_importacion)
+        
         sql.eachRow(cfdSelect,[fecha,rfc,'FACTURA']){ cfdi->
 			
             def data=[:]
@@ -85,39 +126,15 @@ class CfdiMailService {
             cfdiLog.emisor=comprobante.emisor.nombre
         }
         
-        //Detectando correo electronico destino
-        def row=sql.firstRow("""select x.email1 as email,c.nombre as cliente
-                    from SX_CLIENTES_CFDI_MAILS x join sx_clientes c on(x.cliente_id=c.cliente_id) 
-                    where c.rfc=?
-                    """
-            ,[rfc])
-        // Si  no localizo email en SX_CLIENTES_CFDI
-        if(!row){
-            //println 'Buscando email en tabla de clientes'
-            row=sql.firstRow("select c.email1 as email from SX_CLIENTES  c where c.rfc=?",[rfc])
-            if(!row){
-                def msg= "No se puede enviar correo de cfdis a $rfc por no localizar cuenta apropiada de correo"
-                println msg
-                cfdiLog.error=msg
-                cfdiLog.save(failOnError:true)
-                return
-            }
-        }
-        if(!EmailValidator.getInstance().isValid(row.email)){
-            def msg ="Correo invalido $row.email para RFC:$rfc"
-            cfdiLog.error=msg
-            cfdiLog.email=row.email
-            cfdiLog.save(failOnError:true)
-            return
-        }
-        println "Enviando correos a: $rfc  a $row.email "
         
+        //println "Enviando correos a: $rfc  a $row.email "
+        def emisor=Emisor.first()
         sendMail{
             multipart true
-            to 'rubencancino6@gmail.com'
-            cc 'cpradoglez@gmail.com'
+            to row.email
+            cc 'facturacion@papelsa.com.mx'
             subject 'Comprobantes fiscales digitales '
-            html view:'/cfdi/mailAutomaticoPorReceptor',model:[cliente:row.cliente]
+            html view:'/cfdi/mailAutomaticoPorReceptor',model:[cliente:row.cliente,fecha:fecha,emisor:emisor]
             attachments.each{ data->
                 // Agregamos el xml
                 attach data.XML_NAME,"application/xml",data.XML
@@ -127,8 +144,11 @@ class CfdiMailService {
             }
             
         }
-        println "Enviando enviados a: $rfc  a $row.email "
-        cfdiLog.msg="Correo enviado"
+        println "Correo enviados a: $rfc  a $row.email "
+		String message=attachments.collect({it.XML_NAME}).join(',')
+		
+		message=message.length()>600?message[0..600]:message
+        cfdiLog.message=message
         cfdiLog.email=row.email
         cfdiLog.save(failOnError:true)
        

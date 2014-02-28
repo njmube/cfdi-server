@@ -7,7 +7,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <g:layoutHead/>
         <g:javascript library="application"/>		
-        <r:require modules="bootstrap"/>
+        <r:require modules="luxor4"/>
         <r:layoutResources />
     </head>
     

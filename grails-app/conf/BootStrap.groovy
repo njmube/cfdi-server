@@ -8,12 +8,6 @@ class BootStrap {
                 
                 // Generamos algunos emisores de prueba
                 Emisor.findOrCreateWhere(
-                    nombre:"PAPELSA BAJIO, S.A. DE C.V.",
-                    rfc:'PBA0511077F9',
-                    email:'gbarron_papelsabajio@prodigy.net.mx'
-                ).save(failOnError:true)
-                
-                Emisor.findOrCreateWhere(
                     nombre:'PAPEL S.A. de C.V.',
                     rfc:'PAP830101CR3'
                 ).save(failOnError:true)

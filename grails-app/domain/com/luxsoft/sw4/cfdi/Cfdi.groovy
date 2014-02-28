@@ -7,6 +7,7 @@ class Cfdi {
     
     Emisor emisor
     Receptor receptor
+	String grupo
     Date fecha
     String serie
     String folio
@@ -19,7 +20,6 @@ class Cfdi {
     BigDecimal total
     String origen
     byte[] xml
-    byte[] pdf
     
     ComprobanteDocument comprobanteDocument
     
@@ -37,7 +37,7 @@ class Cfdi {
         fechaTimbrado(nullable:true)
         origen(maxSize:255)
         xml maxSize:(1024 * 512)  // 50kb para almacenar el xml
-        pdf nullable:true,maxSize:(1024 * 512)  // 50kb para almacenar el xml
+        
     }
     
     static transients = ['comprobanteDocument','comprobante','timbreFiscal']

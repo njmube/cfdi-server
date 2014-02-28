@@ -25,7 +25,9 @@ class ImportadorService {
     }
     
     def importar(Date fecha){
-        log.info 'Importando Cfdis'
+		
+        log.info("Importando CFDIs para ${fecha}")
+		
         def emisores=EntidadEmisora.findAllByActivo(true)
         emisores.each{ importador->
             println 'Importando Cfdis desde '+importador.clave
@@ -35,9 +37,13 @@ class ImportadorService {
                 username:importador.usuario,
                 password:importador.password)
             Sql sql=new Sql(ds)
-            sql.eachRow("select * from sx_cfdi",[fecha]){ row->
+            sql.eachRow("select * from sx_cfdi where date(creado)=?",[fecha]){ row->
                 println 'Importando cfdi: '+row
             }
         }
+        
     }
+	
 }
+
+

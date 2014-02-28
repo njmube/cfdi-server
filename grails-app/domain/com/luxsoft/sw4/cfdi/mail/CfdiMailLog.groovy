@@ -9,7 +9,8 @@ class CfdiMailLog {
     String email
     String message
     String error
-    
+    Date fecha
+	
     Date dateCreated
     Date lastUpdated
 

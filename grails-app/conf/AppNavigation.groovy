@@ -13,9 +13,8 @@ navigation={
         home(titleText:'Inicio')
         catalogos(controller:'home')
         cfdi(titleText:'Comprobantes'){
+			correos()
             importar()
-            enviarCorreo()
-            correos()
             pdf(titleText:'PDF')
         }  
     }
