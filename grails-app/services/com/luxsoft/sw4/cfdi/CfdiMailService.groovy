@@ -132,7 +132,6 @@ class CfdiMailService {
         sendMail{
             multipart true
             to row.email
-            cc 'facturacion@papelsa.com.mx'
             subject 'Comprobantes fiscales digitales '
             html view:'/cfdi/mailAutomaticoPorReceptor',model:[cliente:row.cliente,fecha:fecha,emisor:emisor]
             attachments.each{ data->

@@ -119,18 +119,25 @@ log4j = {
 }
 
 grails {
+	
+   //mail {
+    // host = "smtp.papelsa.com.mx"
+     //username = "facturacion@papelsa.com.mx"
+     //password = "enviocfdi"
+   //}
    mail {
-     host = "smtp.papelsa.com.mx"
-     //port = 25
-     username = "facturacion@papelsa.com.mx"
-     password = "enviocfdi"
-     //props = ["mail.smtp.auth":"true",
-       //       "mail.smtp.socketFactory.port":"465",
-         //     "mail.smtp.socketFactory.class":"javax.net.ssl.SSLSocketFactory",
-           //   "mail.smtp.socketFactory.fallback":"false"]  
-   }
+	   host = "smtp.gmail.com"
+	   port = 465
+	   username = "creditopapelsa@gmail.com"
+	   password = "creditopapelsahijk"
+	   props = ["mail.smtp.auth":"true",
+               "mail.smtp.socketFactory.port":"465",
+               "mail.smtp.socketFactory.class":"javax.net.ssl.SSLSocketFactory",
+               "mail.smtp.socketFactory.fallback":"false"]
+	 }
 }
-grails.mail.default.from="facturacion@papelsa.com.mx"
+//grails.mail.default.from="facturacion@papelsa.com.mx"
+grails.mail.default.from="creditopapelsa@gmail.com"
 
 grails.databinding.dateFormats = ['MMddyyyy', 'yyyy-MM-dd HH:mm:ss.S', "yyyy-MM-dd'T'hh:mm:ss'Z’","dd/MM/yyyy"]
 grails.plugins.twitterbootstrap.fixtaglib = true
