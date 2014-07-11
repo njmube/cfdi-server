@@ -84,5 +84,6 @@ grails.project.dependency.resolution = {
         runtime ':twitter-bootstrap:3.1.0'
         compile ":jasper:1.7.0"
         compile ":mail:1.0.1"
+        //runtime ':console:1.3'
     }
 }
